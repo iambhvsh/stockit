@@ -68,10 +68,10 @@
         .dot-green { background: #22c55e; }
         
         .terminal-content {
-            padding: 24px;
+            padding: 16px; /* Reduced padding */
             font-family: 'Courier New', Courier, monospace;
             font-size: 13px;
-            line-height: 1.6;
+            line-height: 1.5; /* Slightly tighter line height */
             color: #e4e4e7;
             overflow-x: auto;
         }
@@ -168,11 +168,21 @@
 
         @media (max-width: 768px) {
             section {
-                padding: 60px 0;
+                padding: 80px 0 80px 0;
                 min-height: auto;
             }
+            
+            #hero {
+                min-height: 100dvh;
+                padding-top: 0px;
+                padding-bottom: 0px;
+            }
+
             .btn {
-                width: 100%;
+                /* Removed width: 100% to let buttons size naturally or via utility classes */
+            }
+            .hero-title {
+               font-size: 48px; /* Slightly smaller on mobile to prevent massive stacking */
             }
         }
     </style>
@@ -206,11 +216,11 @@
             <p class="text-xl md:text-2xl text-gray-500 max-w-2xl mx-auto mb-16 font-normal leading-relaxed">
                 One simple API to search and optimize images from Unsplash, StockSnap, and Pixabay.
             </p>
-            <div class="flex flex-col sm:flex-row gap-4 justify-center items-center w-full max-w-md mx-auto">
-                <a href="#introduction" class="btn btn-primary w-full sm:w-auto">
+            <div class="flex flex-row gap-4 justify-center items-center w-full max-w-md mx-auto">
+                <a href="#introduction" class="btn btn-primary flex-1 sm:flex-initial">
                     Get Started
                 </a>
-                <a href="/demo" class="btn btn-secondary w-full sm:w-auto">
+                <a href="/demo" class="btn btn-secondary flex-1 sm:flex-initial">
                     Live Demo
                 </a>
             </div>
@@ -229,8 +239,8 @@
             
             <div class="p-4 md:p-0 max-w-3xl mx-auto">
                 <h3 class="text-xs font-bold uppercase tracking-widest text-[#52525b] mb-4 text-center">Base URL</h3>
-                <div class="terminal-window rounded-xl overflow-hidden shadow-2xl">
-                    <div class="terminal-header">
+                <div class="terminal-window rounded-xl overflow-hidden shadow-2xl border border-[#27272a]">
+                    <div class="terminal-header bg-[#18181b]">
                         <div class="terminal-dot dot-red"></div>
                         <div class="terminal-dot dot-yellow"></div>
                         <div class="terminal-dot dot-green"></div>
@@ -256,53 +266,64 @@
                 </p>
             </div>
 
-            <div class="mb-16 card p-8 rounded-2xl">
-                <h3 class="text-xl font-semibold text-white mb-8">Query Parameters</h3>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left">
-                        <thead>
-                            <tr class="border-b border-[#27272a]">
-                                <th class="py-4 pr-6 text-xs text-[#71717a] uppercase tracking-wider font-semibold">Parameter</th>
-                                <th class="py-4 px-6 text-xs text-[#71717a] uppercase tracking-wider font-semibold">Type</th>
-                                <th class="py-4 pl-6 text-xs text-[#71717a] uppercase tracking-wider font-semibold">Description</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-[#27272a]">
-                            <tr>
-                                <td class="py-4 pr-6 font-mono text-sm text-blue-400 font-medium">q</td>
-                                <td class="py-4 px-6 text-sm text-[#a1a1aa]">string</td>
-                                <td class="py-4 pl-6 text-sm text-[#d4d4d8]">Search query <span class="bg-red-500/10 text-red-400 text-xs font-semibold px-2 py-0.5 rounded ml-2 border border-red-500/20">REQUIRED</span></td>
-                            </tr>
-                            <tr>
-                                <td class="py-4 pr-6 font-mono text-sm text-blue-400 font-medium">lim</td>
-                                <td class="py-4 px-6 text-sm text-[#a1a1aa]">integer</td>
-                                <td class="py-4 pl-6 text-sm text-[#d4d4d8]">Results to return (default: 30, max: 500)</td>
-                            </tr>
-                            <tr>
-                                <td class="py-4 pr-6 font-mono text-sm text-blue-400 font-medium">ext</td>
-                                <td class="py-4 px-6 text-sm text-[#a1a1aa]">string</td>
-                                <td class="py-4 pl-6 text-sm text-[#d4d4d8]">Format: jpg, png, webp</td>
-                            </tr>
-                            <tr>
-                                <td class="py-4 pr-6 font-mono text-sm text-blue-400 font-medium">quality</td>
-                                <td class="py-4 px-6 text-sm text-[#a1a1aa]">integer</td>
-                                <td class="py-4 pl-6 text-sm text-[#d4d4d8]">Compression quality (1-100, default: 90)</td>
-                            </tr>
-                            <tr>
-                                <td class="py-4 pr-6 font-mono text-sm text-blue-400 font-medium">orientation</td>
-                                <td class="py-4 px-6 text-sm text-[#a1a1aa]">string</td>
-                                <td class="py-4 pl-6 text-sm text-[#d4d4d8]">Filter: p (portrait), l (landscape), s (square)</td>
-                            </tr>
-                        </tbody>
-                    </table>
+            <div class="mb-16">
+                <h3 class="text-xl font-semibold text-white mb-8 px-2">Query Parameters</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <!-- q -->
+                    <div class="p-6 rounded-xl border border-[#27272a] bg-[#09090b] hover:border-[#3f3f46] transition-colors">
+                        <div class="flex items-start justify-between mb-4">
+                            <code class="text-blue-400 font-bold text-lg">q</code>
+                            <span class="text-[10px] font-bold tracking-wider text-[#a1a1aa] bg-[#27272a] px-2 py-1 rounded uppercase">string</span>
+                        </div>
+                        <p class="text-sm text-[#d4d4d8] leading-relaxed mb-4">Search query</p>
+                        <div class="flex items-center">
+                             <span class="bg-red-500/10 text-red-400 text-[10px] font-bold px-2 py-1 rounded border border-red-500/20 tracking-wider">REQUIRED</span>
+                        </div>
+                    </div>
+
+                    <!-- lim -->
+                    <div class="p-6 rounded-xl border border-[#27272a] bg-[#09090b] hover:border-[#3f3f46] transition-colors">
+                        <div class="flex items-start justify-between mb-4">
+                            <code class="text-blue-400 font-bold text-lg">lim</code>
+                            <span class="text-[10px] font-bold tracking-wider text-[#a1a1aa] bg-[#27272a] px-2 py-1 rounded uppercase">integer</span>
+                        </div>
+                        <p class="text-sm text-[#d4d4d8] leading-relaxed">Results to return (default: 30, max: 500)</p>
+                    </div>
+
+                    <!-- ext -->
+                    <div class="p-6 rounded-xl border border-[#27272a] bg-[#09090b] hover:border-[#3f3f46] transition-colors">
+                        <div class="flex items-start justify-between mb-4">
+                            <code class="text-blue-400 font-bold text-lg">ext</code>
+                            <span class="text-[10px] font-bold tracking-wider text-[#a1a1aa] bg-[#27272a] px-2 py-1 rounded uppercase">string</span>
+                        </div>
+                        <p class="text-sm text-[#d4d4d8] leading-relaxed">Format: jpg, png, webp</p>
+                    </div>
+
+                    <!-- quality -->
+                    <div class="p-6 rounded-xl border border-[#27272a] bg-[#09090b] hover:border-[#3f3f46] transition-colors">
+                        <div class="flex items-start justify-between mb-4">
+                            <code class="text-blue-400 font-bold text-lg">quality</code>
+                            <span class="text-[10px] font-bold tracking-wider text-[#a1a1aa] bg-[#27272a] px-2 py-1 rounded uppercase">integer</span>
+                        </div>
+                        <p class="text-sm text-[#d4d4d8] leading-relaxed">Compression quality (1-100, default: 90)</p>
+                    </div>
+
+                    <!-- orientation -->
+                    <div class="p-6 rounded-xl border border-[#27272a] bg-[#09090b] hover:border-[#3f3f46] transition-colors">
+                        <div class="flex items-start justify-between mb-4">
+                            <code class="text-blue-400 font-bold text-lg">orientation</code>
+                            <span class="text-[10px] font-bold tracking-wider text-[#a1a1aa] bg-[#27272a] px-2 py-1 rounded uppercase">string</span>
+                        </div>
+                        <p class="text-sm text-[#d4d4d8] leading-relaxed">Filter: p (portrait), l (landscape), s (square)</p>
+                    </div>
                 </div>
             </div>
 
-            <div class="grid lg:grid-cols-2 gap-8">
-                <div>
+            <div class="grid lg:grid-cols-2 gap-8 md:gap-12">
+                <div class="mb-8 lg:mb-0">
                     <h3 class="text-lg font-semibold text-white mb-4">Example Request</h3>
-                    <div class="terminal-window h-full rounded-xl overflow-hidden shadow-lg">
-                        <div class="terminal-header">
+                    <div class="terminal-window rounded-xl overflow-hidden shadow-lg border border-[#27272a] bg-[#09090b]">
+                        <div class="terminal-header bg-[#18181b]">
                             <div class="terminal-dot dot-red"></div>
                             <div class="terminal-dot dot-yellow"></div>
                             <div class="terminal-dot dot-green"></div>
@@ -319,8 +340,8 @@
 
                 <div>
                     <h3 class="text-lg font-semibold text-white mb-4">Example Response</h3>
-                    <div class="terminal-window h-full rounded-xl overflow-hidden shadow-lg">
-                        <div class="terminal-header">
+                    <div class="terminal-window rounded-xl overflow-hidden shadow-lg border border-[#27272a] bg-[#09090b]">
+                        <div class="terminal-header bg-[#18181b]">
                             <div class="terminal-dot dot-red"></div>
                             <div class="terminal-dot dot-yellow"></div>
                             <div class="terminal-dot dot-green"></div>
