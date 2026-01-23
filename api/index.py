@@ -892,12 +892,6 @@ def search_handler(query=None, sources=['unsplash', 'pixabay', 'stocksnap']):
     })
 
 
-def aggregate_random_images(sources):
-    """
-    Helper to return random mixed images from topics.
-    """
-
-
 @app.route('/url')
 def fetch_from_url():
     """
