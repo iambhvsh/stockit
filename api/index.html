@@ -143,7 +143,6 @@
                     <a href="#hero" class="nav-link px-4 py-2 rounded-lg text-sm text-gray-300 hover:text-white">Overview</a>
                     <a href="#search" class="nav-link px-4 py-2 rounded-lg text-sm text-gray-300 hover:text-white">Search</a>
                     <a href="#endpoints" class="nav-link px-4 py-2 rounded-lg text-sm text-gray-300 hover:text-white">Endpoints</a>
-                    <a href="#convert" class="nav-link px-4 py-2 rounded-lg text-sm text-gray-300 hover:text-white">Convert</a>
                 </div>
             </div>
         </div>
@@ -332,64 +331,6 @@
                         <span class="glass-card px-3 py-1.5 accent-blue font-medium">/pixabay</span>
                         <span class="glass-card px-3 py-1.5 accent-blue font-medium">/stocksnap</span>
                     </div>
-                </div>
-
-                <div class="glass-card p-8 hover:bg-white hover:bg-opacity-5 transition-all duration-300">
-                    <div class="flex items-center gap-3 mb-4">
-                        <span class="bg-green-500 bg-opacity-20 text-green-400 px-2.5 py-1 rounded-lg text-xs font-medium">GET</span>
-                        <h3 class="font-semibold text-xl text-white">/url</h3>
-                    </div>
-                    <p class="text-gray-400 mb-6 leading-relaxed">Scrape and extract images from any public website URL.</p>
-                    <div class="terminal-window">
-                        <div class="terminal-content text-xs py-2">
-                            <span class="text-gray-500">~ %</span> <span class="accent-blue">/url?q=site.com</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Convert Endpoint Section -->
-    <section id="convert" class="relative bg-black">
-        <div class="max-w-5xl mx-auto px-6">
-            <div class="text-center mb-16">
-                <div class="flex items-center justify-center gap-3 mb-6">
-                    <span class="bg-green-500 bg-opacity-20 text-green-400 px-3 py-1.5 rounded-lg text-sm font-medium">GET</span>
-                    <h2 class="section-title text-white">/convert</h2>
-                </div>
-                <p class="text-lg md:text-xl text-gray-400 max-w-2xl mx-auto">
-                    Real-time image optimizer and format converter.
-                </p>
-            </div>
-            
-            <div class="grid lg:grid-cols-2 gap-8 mb-12">
-                <div class="glass-card p-8">
-                    <h4 class="text-xl font-semibold text-white mb-6">Parameters</h4>
-                    <div class="space-y-6">
-                        <div class="flex gap-4">
-                            <code class="accent-blue font-mono text-sm font-medium min-w-[80px]">url</code>
-                            <span class="text-gray-400 leading-relaxed">The absolute URL of the image source</span>
-                        </div>
-                        <div class="flex gap-4">
-                            <code class="accent-blue font-mono text-sm font-medium min-w-[80px]">ext</code>
-                            <span class="text-gray-400 leading-relaxed">Target format (jpg, png, webp)</span>
-                        </div>
-                        <div class="flex gap-4">
-                            <code class="accent-blue font-mono text-sm font-medium min-w-[80px]">quality</code>
-                            <span class="text-gray-400 leading-relaxed">Compression level from 1-100</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="glass-card p-8 border-blue-500 border-opacity-20">
-                    <h4 class="text-xl font-semibold text-white mb-6">Auto-Configuration</h4>
-                    <p class="text-gray-400 leading-relaxed mb-4">
-                        You usually don't need to call this endpoint manually.
-                    </p>
-                    <p class="text-gray-400 leading-relaxed">
-                        When you pass <code class="accent-blue font-mono text-sm">ext=webp</code> to the search endpoint, all returned URLs automatically point here with optimized parameters.
-                    </p>
                 </div>
             </div>
         </div>
