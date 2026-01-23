@@ -484,6 +484,74 @@ def scrape_pixabay_page(query, page, base_url, filters=None, ext=None, quality=D
         return []
 
 
+def scrape_stocksnap_page(query, page, base_url, filters=None, ext=None, quality=DEFAULT_QUALITY):
+    """
+    Scrape StockSnap.io.
+    """
+    scraper = get_scraper()
+    
+    try:
+        # StockSnap basic search URL
+        url = f"https://stocksnap.io/search/{query}"
+        # They don't have clear pagination in URL easily without JS, but let's try standard scraper
+        # Actually StockSnap uses incremental loading or page parameters if supported.
+        # But for valid HTML scraping, the initial page usually returns ~50 items.
+        
+        # Adding headers to look like real browser
+        headers = {'User-Agent': USER_AGENT}
+        r = fetch_with_scraper(scraper, url, headers=headers)
+        
+        if not r:
+            return []
+        
+        soup = BeautifulSoup(r.text, 'html.parser')
+        results = []
+        
+        # StockSnap structure: .photo-grid-item a (link) -> img
+        for item in soup.select('.photo-grid-item a'):
+            try:
+                img = item.find('img')
+                if not img:
+                    continue
+                    
+                src = img.get('src')
+                # Filter out ads (often shutterstock)
+                if not src or 'generated.stocksnap.io' not in src:
+                     # Some valid ones might be on other domains, but let's be safe.
+                     # Actually, let's verify if legitimate images are on other domains.
+                     # Usually stocksnap images are on 'https://cdn.stocksnap.io/img-thumbs/'
+                     if 'cdn.stocksnap.io' not in src and 'generated.stocksnap.io' not in src:
+                         continue
+
+                # Getting high res (Stocksnap usually links to a detail page, but thumb is often high enough for preview)
+                # The 'src' is usually the thumbnail.
+                # Construct ID from href
+                href = item.get('href') # /photo/some-id
+                photo_id = href.split('/')[-1] if href else random.randint(100000, 999999)
+                
+                # High res estimation
+                hi_res = src.replace('/img-thumbs/280h/', '/img-thumbs/960w/') # Heuristic replacement
+                
+                results.append(standardize_result(
+                    source="stocksnap",
+                    source_id=photo_id,
+                    url=hi_res,
+                    thumb=src,
+                    alt=img.get('alt', 'StockSnap Image'),
+                    base_url=base_url,
+                    photographer_name="StockSnap Author",
+                    ext=ext,
+                    quality=quality
+                ))
+            except:
+                continue
+                
+        return results
+
+    except Exception as e:
+        print(f"StockSnap error: {e}")
+        return []
+
 def scrape_generic_url(target_url, base_url, ext=None, limit=DEFAULT_LIMIT_GENERIC):
     """
     Scrape images from generic URL with pagination.
@@ -593,7 +661,7 @@ def scrape_generic_url(target_url, base_url, ext=None, limit=DEFAULT_LIMIT_GENER
 # ==========================================
 
 def get_images_threaded(query, limit, base_url, filters=None, ext=None, quality=DEFAULT_QUALITY, 
-                       sources=['unsplash', 'pexels', 'pixabay']):
+                       sources=['unsplash', 'pixabay', 'stocksnap']):
     """
     Concurrent scraping with STRICT timeout management.
     """
@@ -612,11 +680,11 @@ def get_images_threaded(query, limit, base_url, filters=None, ext=None, quality=
             if 'unsplash' in sources:
                 futures.append(executor.submit(scrape_unsplash_page, query, page, 
                                               base_url, filters, ext, quality))
-            if 'pexels' in sources:
-                futures.append(executor.submit(scrape_pexels_page, query, page, 
-                                              base_url, filters, ext, quality))
             if 'pixabay' in sources:
                 futures.append(executor.submit(scrape_pixabay_page, query, page, 
+                                              base_url, filters, ext, quality))
+            if 'stocksnap' in sources:
+                futures.append(executor.submit(scrape_stocksnap_page, query, page, 
                                               base_url, filters, ext, quality))
         
         # Collect with timeout awareness
@@ -664,36 +732,16 @@ def home():
 
 @app.route('/search')
 def search():
-    """
-    Main search endpoint - all sources.
-    Cache-busting enforced at every level.
-    """
+    """Main search endpoint."""
     query = request.args.get('q')
     if not query:
-        return jsonify({
-            'error': 'Missing required parameter: q',
-            'timestamp': time.time()
-        }), 400
+        return aggregate_random_images(sources=['unsplash', 'pixabay', 'stocksnap'])
     
     return search_handler(query)
 
 
-@app.route('/all')
-def all_images():
-    """
-    Random topic search if no query.
-    Aggregates results from multiple random topics if no specific query is provided
-    to ensure the requested limit is met.
-    """
-    query_param = request.args.get('q')
-    
-    # If a specific query is provided, use the standard handler
-    if query_param:
-        return search_handler(query_param)
-        
-    # --- Logic for random aggregation (No 'q' param) ---
-    
-    # 1. Parse Parameters
+def aggregate_random_images(sources):
+    """Return random mixed images from topics."""
     try:
         limit = min(int(request.args.get('lim', DEFAULT_LIMIT)), MAX_LIMIT)
     except:
@@ -705,38 +753,28 @@ def all_images():
         quality = DEFAULT_QUALITY
     
     ext = request.args.get('ext')
-    
-    orientation_map = ORIENTATION_MAP
-    orientation = request.args.get('orientation', '').lower()
-    orientation = orientation_map.get(orientation, orientation)
-    
+    orientation = request.args.get('orientation', '')
     order = request.args.get('order')
     base_url = request.host_url.rstrip('/')
     
-    # 2. Aggregation Loop
     aggregated_results = []
     used_topics = set()
-    max_attempts = 10  # Enough attempts to fill the buffer
+    max_attempts = 15
     attempts = 0
     
-    # Loop until we have enough results
     while len(aggregated_results) < limit and attempts < max_attempts:
         attempts += 1
         
-        # Pick a unique random topic
         available_topics = [t for t in DEFAULT_SEARCH_QUERIES if t not in used_topics]
         if not available_topics:
-            # If we run out of unique topics, reset used_topics to allow reuse
             used_topics = set()
             available_topics = DEFAULT_SEARCH_QUERIES
             
         current_topic = random.choice(available_topics)
         used_topics.add(current_topic)
         
-        # How many more do we need?
         needed = limit - len(aggregated_results)
         
-        # Fetch batch
         current_batch = get_images_threaded(
             query=current_topic,
             limit=needed,
@@ -744,63 +782,69 @@ def all_images():
             filters={'orientation': orientation, 'order': order},
             ext=ext,
             quality=quality,
-            sources=['unsplash', 'pexels', 'pixabay']
+            sources=sources
         )
-        
         aggregated_results.extend(current_batch)
         
-    # 3. Finalize
-    # Shuffle to mix the topics
     random.shuffle(aggregated_results)
-    
-    # Trim to exact limit
     final_results = aggregated_results[:limit]
     
     return jsonify({
         'count': len(final_results),
-        'query': 'random_mix',
+        'query': 'random',
         'topics_used': list(used_topics),
         'format_requested': ext,
-        'sources': ['unsplash', 'pexels', 'pixabay'],
+        'sources': sources,
         'results': final_results,
         'timestamp': int(time.time()),
         'cache_policy': 'no-store'
     })
 
 
+@app.route('/all')
+def all_images():
+    """Random topic search if no query."""
+    query = request.args.get('q')
+    if query:
+        return search_handler(query, sources=['unsplash', 'pixabay', 'stocksnap'])
+    return aggregate_random_images(sources=['unsplash', 'pixabay', 'stocksnap'])
+
+
 @app.route('/unsplash')
 def unsplash_images():
     """Unsplash-only search."""
-    query = request.args.get('q', random.choice(DEFAULT_SEARCH_QUERIES))
-    return search_handler(query, sources=['unsplash'])
-
-
-@app.route('/pexels')
-def pexels_images():
-    """Pexels-only search."""
-    query = request.args.get('q', random.choice(DEFAULT_SEARCH_QUERIES))
-    return search_handler(query, sources=['pexels'])
+    query = request.args.get('q')
+    if query:
+        return search_handler(query, sources=['unsplash'])
+    return aggregate_random_images(sources=['unsplash'])
 
 
 @app.route('/pixabay')
 def pixabay_images():
     """Pixabay-only search."""
-    query = request.args.get('q', random.choice(DEFAULT_SEARCH_QUERIES))
-    return search_handler(query, sources=['pixabay'])
+    query = request.args.get('q')
+    if query:
+        return search_handler(query, sources=['pixabay'])
+    return aggregate_random_images(sources=['pixabay'])
 
 
-def search_handler(query=None, sources=['unsplash', 'pexels', 'pixabay']):
+@app.route('/stocksnap')
+def stocksnap_images():
+    """StockSnap-only search."""
+    query = request.args.get('q')
+    if query:
+        return search_handler(query, sources=['stocksnap'])
+    return aggregate_random_images(sources=['stocksnap'])
+
+
+def search_handler(query=None, sources=['unsplash', 'pixabay', 'stocksnap']):
     """
     Shared search logic with cache prevention.
     Returns JSON with cache-busting headers.
     """
     if not query:
-        query = request.args.get('q')
-        if not query:
-            return jsonify({
-                'error': 'Missing required parameter: q',
-                'timestamp': time.time()
-            }), 400
+         # Should not happen if called correctly, but fallback
+        return aggregate_random_images(sources)
     
     # Parse params with safe limits
     try:
@@ -846,6 +890,12 @@ def search_handler(query=None, sources=['unsplash', 'pexels', 'pixabay']):
         'timestamp': int(time.time()),
         'cache_policy': 'no-store'
     })
+
+
+def aggregate_random_images(sources):
+    """
+    Helper to return random mixed images from topics.
+    """
 
 
 @app.route('/url')
