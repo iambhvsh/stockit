@@ -378,14 +378,14 @@ def scrape_pexels_page(query, page, base_url, filters=None, ext=None, quality=DE
         soup = BeautifulSoup(r.text, 'html.parser')
         results = []
         
-        for article in soup.find_all('article'):
+        for img in soup.find_all('img'):
             try:
-                img = article.find('img')
-                if not img:
-                    continue
-                
                 img_src = img.get('src') or img.get('data-src')
                 if not img_src:
+                    continue
+                
+                # Strict filter for valid Pexels photo URLs
+                if '/photos/' not in img_src:
                     continue
                 
                 # Fast filter
@@ -395,7 +395,12 @@ def scrape_pexels_page(query, page, base_url, filters=None, ext=None, quality=DE
                 # Convert to high-res
                 hi_res = img_src.split('?')[0] + PEXELS_HI_RES_SUFFIX if '?' in img_src else img_src
                 
-                photo_id = article.get('data-photo-modal-medium-id') or random.randint(100000, 999999)
+                # Extract ID from URL if possible
+                # URL pattern: .../photos/{id}/...
+                try:
+                    photo_id = img_src.split('/photos/')[1].split('/')[0]
+                except:
+                    photo_id = random.randint(100000, 999999)
 
                 results.append(standardize_result(
                     source="pexels",
@@ -675,9 +680,92 @@ def search():
 
 @app.route('/all')
 def all_images():
-    """Random topic search if no query."""
-    query = request.args.get('q', random.choice(DEFAULT_SEARCH_QUERIES))
-    return search_handler(query)
+    """
+    Random topic search if no query.
+    Aggregates results from multiple random topics if no specific query is provided
+    to ensure the requested limit is met.
+    """
+    query_param = request.args.get('q')
+    
+    # If a specific query is provided, use the standard handler
+    if query_param:
+        return search_handler(query_param)
+        
+    # --- Logic for random aggregation (No 'q' param) ---
+    
+    # 1. Parse Parameters
+    try:
+        limit = min(int(request.args.get('lim', DEFAULT_LIMIT)), MAX_LIMIT)
+    except:
+        limit = DEFAULT_LIMIT
+    
+    try:
+        quality = min(max(int(request.args.get('quality', DEFAULT_QUALITY)), MIN_QUALITY), MAX_QUALITY)
+    except:
+        quality = DEFAULT_QUALITY
+    
+    ext = request.args.get('ext')
+    
+    orientation_map = ORIENTATION_MAP
+    orientation = request.args.get('orientation', '').lower()
+    orientation = orientation_map.get(orientation, orientation)
+    
+    order = request.args.get('order')
+    base_url = request.host_url.rstrip('/')
+    
+    # 2. Aggregation Loop
+    aggregated_results = []
+    used_topics = set()
+    max_attempts = 10  # Enough attempts to fill the buffer
+    attempts = 0
+    
+    # Loop until we have enough results
+    while len(aggregated_results) < limit and attempts < max_attempts:
+        attempts += 1
+        
+        # Pick a unique random topic
+        available_topics = [t for t in DEFAULT_SEARCH_QUERIES if t not in used_topics]
+        if not available_topics:
+            # If we run out of unique topics, reset used_topics to allow reuse
+            used_topics = set()
+            available_topics = DEFAULT_SEARCH_QUERIES
+            
+        current_topic = random.choice(available_topics)
+        used_topics.add(current_topic)
+        
+        # How many more do we need?
+        needed = limit - len(aggregated_results)
+        
+        # Fetch batch
+        current_batch = get_images_threaded(
+            query=current_topic,
+            limit=needed,
+            base_url=base_url,
+            filters={'orientation': orientation, 'order': order},
+            ext=ext,
+            quality=quality,
+            sources=['unsplash', 'pexels', 'pixabay']
+        )
+        
+        aggregated_results.extend(current_batch)
+        
+    # 3. Finalize
+    # Shuffle to mix the topics
+    random.shuffle(aggregated_results)
+    
+    # Trim to exact limit
+    final_results = aggregated_results[:limit]
+    
+    return jsonify({
+        'count': len(final_results),
+        'query': 'random_mix',
+        'topics_used': list(used_topics),
+        'format_requested': ext,
+        'sources': ['unsplash', 'pexels', 'pixabay'],
+        'results': final_results,
+        'timestamp': int(time.time()),
+        'cache_policy': 'no-store'
+    })
 
 
 @app.route('/unsplash')
