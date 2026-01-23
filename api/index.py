@@ -407,6 +407,18 @@ def home():
         })
 
 
+@app.route('/demo')
+def demo():
+    try:
+        # Go up one level from 'api' to root, then into 'public/demo'
+        return send_file(os.path.join(os.path.dirname(__file__), '..', 'public', 'demo', 'index.html'))
+    except Exception as e:
+        return jsonify({
+            "error": "demo/index.html not found",
+            "details": str(e)
+        }), 404
+
+
 @app.route('/search')
 def search():
     query = request.args.get('q')

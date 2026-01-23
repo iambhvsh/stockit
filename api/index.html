@@ -6,10 +6,19 @@
     <title>StockIt API Documentation</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
         
+        :root {
+            --bg: #000000;
+            --text-main: #ffffff;
+            --text-muted: #a1a1aa;
+            --border: #27272a;
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+        }
+
         * {
-            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+            font-family: 'Inter', -apple-system, system-ui, sans-serif;
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
         }
@@ -19,7 +28,8 @@
         }
         
         body {
-            background: #000000;
+            background: var(--bg);
+            color: var(--text-main);
         }
         
         section {
@@ -27,104 +37,142 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            width: 100%;
+            padding: 4rem 0;
         }
         
         .terminal-window {
-            background: #1e1e1e;
+            background: #09090b;
+            border: 1px solid var(--border);
             border-radius: 12px;
             overflow: hidden;
-            box-shadow: 0 25px 70px rgba(0, 0, 0, 0.6);
         }
         
         .terminal-header {
-            background: #323232;
+            background: #18181b;
             padding: 12px 16px;
             display: flex;
             align-items: center;
-            border-bottom: 1px solid #000;
+            border-bottom: 1px solid var(--border);
         }
         
         .terminal-dot {
-            width: 12px;
-            height: 12px;
+            width: 10px;
+            height: 10px;
             border-radius: 50%;
             margin-right: 8px;
         }
         
-        .dot-close { background: #ff5f57; }
-        .dot-minimize { background: #febc2e; }
-        .dot-maximize { background: #28c840; }
+        .dot-red { background: #ef4444; }
+        .dot-yellow { background: #eab308; }
+        .dot-green { background: #22c55e; }
         
         .terminal-content {
             padding: 24px;
-            font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Courier New', monospace;
+            font-family: 'Courier New', Courier, monospace;
             font-size: 13px;
-            line-height: 1.8;
-            color: #f5f5f7;
+            line-height: 1.6;
+            color: #e4e4e7;
             overflow-x: auto;
         }
         
         .nav-link {
-            transition: all 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
+            color: var(--text-muted);
+            transition: color 0.2s;
+            font-size: 14px;
         }
         
         .nav-link:hover {
-            background: rgba(255, 255, 255, 0.08);
+            color: var(--text-main);
         }
         
-        .accent-blue {
-            color: #0a84ff;
+        .btn {
+            transition: all 0.2s;
+            border-radius: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 14px 28px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
         }
-        
-        .bg-accent {
-            background: #0a84ff;
-        }
-        
+
         .btn-primary {
-            background: #0a84ff;
-            transition: all 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
-            box-shadow: 0 4px 14px rgba(10, 132, 255, 0.39);
+            background: var(--primary);
+            color: #fff;
+            border: 1px solid var(--primary);
         }
         
         .btn-primary:hover {
-            background: #0077ed;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(10, 132, 255, 0.5);
+            background: var(--primary-hover);
+            border-color: var(--primary-hover);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: #fff;
+            border: 1px solid var(--border);
+        }
+        
+        .btn-secondary:hover {
+            border-color: var(--text-muted);
+            background: rgba(255,255,255,0.05);
         }
         
         .hero-title {
             font-size: clamp(40px, 8vw, 80px);
-            font-weight: 600;
-            letter-spacing: -2px;
-            line-height: 1.05;
-        }
-        
-        .section-title {
-            font-size: clamp(32px, 5vw, 56px);
-            font-weight: 600;
-            letter-spacing: -1.5px;
+            font-weight: 700;
+            letter-spacing: -0.04em;
             line-height: 1.1;
         }
         
-        .fade-in {
-            animation: fadeIn 1s ease-in-out;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+        .section-title {
+            font-size: clamp(24px, 5vw, 40px);
+            font-weight: 600;
+            letter-spacing: -0.02em;
         }
         
         .navbar-blur {
-            background: rgba(0, 0, 0, 0.72);
-            backdrop-filter: saturate(180%) blur(20px);
-            -webkit-backdrop-filter: saturate(180%) blur(20px);
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(12px);
         }
         
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+        }
+        
+        .badge-green {
+            background: rgba(34, 197, 94, 0.1);
+            color: #4ade80;
+            border: 1px solid rgba(34, 197, 94, 0.2);
+        }
+        
+        .card {
+            background: #09090b;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 32px;
+            transition: border-color 0.2s;
+        }
+        
+        .card:hover {
+            border-color: var(--text-muted);
+        }
+
         @media (max-width: 768px) {
             section {
+                padding: 60px 0;
                 min-height: auto;
-                padding: 80px 0;
+            }
+            .btn {
+                width: 100%;
             }
         }
     </style>
@@ -132,17 +180,18 @@
 <body class="text-white">
 
     <!-- Navbar -->
-    <nav class="navbar-blur fixed w-full z-50 top-0 border-b border-white border-opacity-10">
+    <nav class="fixed w-full z-50 top-0 bg-black/90 backdrop-blur border-b border-[#27272a]">
         <div class="max-w-7xl mx-auto px-6 lg:px-8">
-            <div class="flex items-center justify-between h-14">
-                <div class="flex items-center gap-2">
-                    <div class="bg-accent text-white w-8 h-8 rounded-lg flex items-center justify-center font-semibold text-sm">Si</div>
-                    <span class="font-medium text-base text-white">StockIt API</span>
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center gap-3">
+                    <div class="bg-blue-600 text-white w-8 h-8 flex items-center justify-center font-bold text-sm rounded-lg">Si</div>
+                    <span class="font-semibold text-base text-white tracking-wide">StockIt API</span>
                 </div>
-                <div class="hidden md:flex items-center space-x-2">
-                    <a href="#hero" class="nav-link px-4 py-2 rounded-lg text-sm text-gray-300 hover:text-white">Overview</a>
-                    <a href="#search" class="nav-link px-4 py-2 rounded-lg text-sm text-gray-300 hover:text-white">Search</a>
-                    <a href="#endpoints" class="nav-link px-4 py-2 rounded-lg text-sm text-gray-300 hover:text-white">Endpoints</a>
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="#hero" class="nav-link font-medium">Overview</a>
+                    <a href="#search" class="nav-link font-medium">Search</a>
+                    <a href="#endpoints" class="nav-link font-medium">Endpoints</a>
+                    <a href="/demo" class="nav-link font-medium">Demo</a>
                 </div>
             </div>
         </div>
@@ -151,43 +200,43 @@
     <!-- Hero Section -->
     <section id="hero" class="relative">
         <div class="max-w-6xl mx-auto px-6 text-center fade-in">
-            <h1 class="hero-title text-white mb-6">
+            <h1 class="hero-title text-white mb-8">
                 Unified Stock<br>Image API
             </h1>
-            <p class="text-xl md:text-2xl text-gray-400 max-w-3xl mx-auto mb-12 font-normal leading-relaxed">
+            <p class="text-xl md:text-2xl text-gray-500 max-w-2xl mx-auto mb-16 font-normal leading-relaxed">
                 One simple API to search and optimize images from Unsplash, StockSnap, and Pixabay.
             </p>
-            <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
-                <a href="#search" class="btn-primary text-white font-medium py-3 px-8 rounded-full">
+            <div class="flex flex-col sm:flex-row gap-4 justify-center items-center w-full max-w-md mx-auto">
+                <a href="#introduction" class="btn btn-primary w-full sm:w-auto">
                     Get Started
                 </a>
-                <a href="#endpoints" class="glass-card text-white font-medium py-3 px-8 rounded-full hover:bg-opacity-60 transition-all">
-                    View Documentation
+                <a href="/demo" class="btn btn-secondary w-full sm:w-auto">
+                    Live Demo
                 </a>
             </div>
         </div>
     </section>
 
     <!-- Introduction Section -->
-    <section id="introduction" class="relative bg-black">
-        <div class="max-w-5xl mx-auto px-6">
+    <section id="introduction" class="relative">
+        <div class="max-w-5xl mx-auto px-6 w-full">
             <div class="text-center mb-16">
                 <h2 class="section-title text-white mb-6">Introduction</h2>
-                <p class="text-lg md:text-xl text-gray-400 max-w-3xl mx-auto leading-relaxed">
+                <p class="text-lg md:text-xl text-gray-500 max-w-2xl mx-auto leading-relaxed">
                     The StockIt API aggregates millions of free-to-use images from the web's best sources with built-in optimization.
                 </p>
             </div>
             
-            <div class="p-8 md:p-12 max-w-3xl mx-auto">
-                <h3 class="text-xl font-semibold text-white mb-6">Base URL</h3>
-                <div class="terminal-window">
+            <div class="p-4 md:p-0 max-w-3xl mx-auto">
+                <h3 class="text-xs font-bold uppercase tracking-widest text-[#52525b] mb-4 text-center">Base URL</h3>
+                <div class="terminal-window rounded-xl overflow-hidden shadow-2xl">
                     <div class="terminal-header">
-                        <div class="terminal-dot dot-close"></div>
-                        <div class="terminal-dot dot-minimize"></div>
-                        <div class="terminal-dot dot-maximize"></div>
+                        <div class="terminal-dot dot-red"></div>
+                        <div class="terminal-dot dot-yellow"></div>
+                        <div class="terminal-dot dot-green"></div>
                     </div>
                     <div class="terminal-content">
-                        <span class="text-gray-500">~ %</span> <span class="accent-blue">https://imgstcks.vercel.app</span>
+                        <span class="text-gray-600">~ %</span> <span>https://imgstcks.vercel.app</span>
                     </div>
                 </div>
             </div>
@@ -195,72 +244,72 @@
     </section>
 
     <!-- Search Endpoint Section -->
-    <section id="search" class="relative bg-black">
+    <section id="search" class="relative">
         <div class="max-w-6xl mx-auto px-6 w-full">
-            <div class="text-center mb-12">
+            <div class="text-center mb-16">
                 <div class="flex items-center justify-center gap-3 mb-6">
-                    <span class="bg-green-500 bg-opacity-20 text-green-400 px-3 py-1.5 rounded-lg text-sm font-medium">GET</span>
+                    <span class="badge badge-green">GET</span>
                     <h2 class="section-title text-white">/search</h2>
                 </div>
-                <p class="text-lg md:text-xl text-gray-400 max-w-2xl mx-auto">
+                <p class="text-lg md:text-xl text-[#a1a1aa] max-w-2xl mx-auto">
                     Search for images across all supported providers.
                 </p>
             </div>
 
-            <div class="glass-card p-8 md:p-10 mb-10">
-                <h3 class="text-2xl font-semibold text-white mb-8">Query Parameters</h3>
+            <div class="mb-16 card p-8 rounded-2xl">
+                <h3 class="text-xl font-semibold text-white mb-8">Query Parameters</h3>
                 <div class="overflow-x-auto">
-                    <table class="min-w-full">
+                    <table class="w-full text-left">
                         <thead>
-                            <tr class="border-b border-white border-opacity-10">
-                                <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Parameter</th>
-                                <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
-                                <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+                            <tr class="border-b border-[#27272a]">
+                                <th class="py-4 pr-6 text-xs text-[#71717a] uppercase tracking-wider font-semibold">Parameter</th>
+                                <th class="py-4 px-6 text-xs text-[#71717a] uppercase tracking-wider font-semibold">Type</th>
+                                <th class="py-4 pl-6 text-xs text-[#71717a] uppercase tracking-wider font-semibold">Description</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-white divide-opacity-5">
+                        <tbody class="divide-y divide-[#27272a]">
                             <tr>
-                                <td class="px-6 py-5 font-mono text-sm accent-blue font-medium">q</td>
-                                <td class="px-6 py-5 text-sm text-gray-400">string</td>
-                                <td class="px-6 py-5 text-sm text-gray-300">Search query <span class="text-red-400 text-xs font-semibold ml-2">Required</span></td>
+                                <td class="py-4 pr-6 font-mono text-sm text-blue-400 font-medium">q</td>
+                                <td class="py-4 px-6 text-sm text-[#a1a1aa]">string</td>
+                                <td class="py-4 pl-6 text-sm text-[#d4d4d8]">Search query <span class="bg-red-500/10 text-red-400 text-xs font-semibold px-2 py-0.5 rounded ml-2 border border-red-500/20">REQUIRED</span></td>
                             </tr>
                             <tr>
-                                <td class="px-6 py-5 font-mono text-sm accent-blue font-medium">lim</td>
-                                <td class="px-6 py-5 text-sm text-gray-400">integer</td>
-                                <td class="px-6 py-5 text-sm text-gray-300">Results to return (default: 30, max: 500)</td>
+                                <td class="py-4 pr-6 font-mono text-sm text-blue-400 font-medium">lim</td>
+                                <td class="py-4 px-6 text-sm text-[#a1a1aa]">integer</td>
+                                <td class="py-4 pl-6 text-sm text-[#d4d4d8]">Results to return (default: 30, max: 500)</td>
                             </tr>
                             <tr>
-                                <td class="px-6 py-5 font-mono text-sm accent-blue font-medium">ext</td>
-                                <td class="px-6 py-5 text-sm text-gray-400">string</td>
-                                <td class="px-6 py-5 text-sm text-gray-300">Format: jpg, png, webp</td>
+                                <td class="py-4 pr-6 font-mono text-sm text-blue-400 font-medium">ext</td>
+                                <td class="py-4 px-6 text-sm text-[#a1a1aa]">string</td>
+                                <td class="py-4 pl-6 text-sm text-[#d4d4d8]">Format: jpg, png, webp</td>
                             </tr>
                             <tr>
-                                <td class="px-6 py-5 font-mono text-sm accent-blue font-medium">quality</td>
-                                <td class="px-6 py-5 text-sm text-gray-400">integer</td>
-                                <td class="px-6 py-5 text-sm text-gray-300">Compression quality (1-100, default: 90)</td>
+                                <td class="py-4 pr-6 font-mono text-sm text-blue-400 font-medium">quality</td>
+                                <td class="py-4 px-6 text-sm text-[#a1a1aa]">integer</td>
+                                <td class="py-4 pl-6 text-sm text-[#d4d4d8]">Compression quality (1-100, default: 90)</td>
                             </tr>
                             <tr>
-                                <td class="px-6 py-5 font-mono text-sm accent-blue font-medium">orientation</td>
-                                <td class="px-6 py-5 text-sm text-gray-400">string</td>
-                                <td class="px-6 py-5 text-sm text-gray-300">Filter: p (portrait), l (landscape), s (square)</td>
+                                <td class="py-4 pr-6 font-mono text-sm text-blue-400 font-medium">orientation</td>
+                                <td class="py-4 px-6 text-sm text-[#a1a1aa]">string</td>
+                                <td class="py-4 pl-6 text-sm text-[#d4d4d8]">Filter: p (portrait), l (landscape), s (square)</td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
             </div>
 
-            <div class="grid md:grid-cols-2 gap-6">
+            <div class="grid lg:grid-cols-2 gap-8">
                 <div>
-                    <h3 class="text-xl font-semibold text-white mb-4">Example Request</h3>
-                    <div class="terminal-window">
+                    <h3 class="text-lg font-semibold text-white mb-4">Example Request</h3>
+                    <div class="terminal-window h-full rounded-xl overflow-hidden shadow-lg">
                         <div class="terminal-header">
-                            <div class="terminal-dot dot-close"></div>
-                            <div class="terminal-dot dot-minimize"></div>
-                            <div class="terminal-dot dot-maximize"></div>
-                            <span class="ml-3 text-xs text-gray-400">zsh</span>
+                            <div class="terminal-dot dot-red"></div>
+                            <div class="terminal-dot dot-yellow"></div>
+                            <div class="terminal-dot dot-green"></div>
+                            <span class="ml-auto text-xs text-[#71717a] font-mono">zsh</span>
                         </div>
-                        <div class="terminal-content text-sm">
-                            <div><span class="text-gray-500">~ %</span> curl <span class="text-yellow-300">\</span></div>
+                        <div class="terminal-content">
+                            <div><span class="text-[#71717a]">~ %</span> curl <span class="text-[#71717a]">\</span></div>
                             <div class="ml-4"><span class="text-green-400">"https://imgstcks.vercel.app/search?</span></div>
                             <div class="ml-4"><span class="text-green-400">q=cyberpunk&lim=5&ext=webp&</span></div>
                             <div class="ml-4"><span class="text-green-400">quality=50"</span></div>
@@ -269,16 +318,16 @@
                 </div>
 
                 <div>
-                    <h3 class="text-xl font-semibold text-white mb-4">Example Response</h3>
-                    <div class="terminal-window">
+                    <h3 class="text-lg font-semibold text-white mb-4">Example Response</h3>
+                    <div class="terminal-window h-full rounded-xl overflow-hidden shadow-lg">
                         <div class="terminal-header">
-                            <div class="terminal-dot dot-close"></div>
-                            <div class="terminal-dot dot-minimize"></div>
-                            <div class="terminal-dot dot-maximize"></div>
-                            <span class="ml-3 text-xs text-gray-400">response.json</span>
+                            <div class="terminal-dot dot-red"></div>
+                            <div class="terminal-dot dot-yellow"></div>
+                            <div class="terminal-dot dot-green"></div>
+                            <span class="ml-auto text-xs text-[#71717a] font-mono">json</span>
                         </div>
-                        <div class="terminal-content text-xs">
-<pre style="margin: 0; color: #f5f5f7;">{
+                        <div class="terminal-content">
+<pre style="margin: 0;">{
   <span class="text-purple-400">"count"</span>: <span class="text-blue-400">1</span>,
   <span class="text-purple-400">"query"</span>: <span class="text-green-400">"cyberpunk"</span>,
   <span class="text-purple-400">"results"</span>: [
@@ -297,39 +346,37 @@
     </section>
 
     <!-- Additional Endpoints Section -->
-    <section id="endpoints" class="relative bg-black">
-        <div class="max-w-6xl mx-auto px-6">
+    <section id="endpoints" class="relative">
+        <div class="max-w-6xl mx-auto px-6 w-full">
             <div class="text-center mb-16">
                 <h2 class="section-title text-white mb-6">Additional Endpoints</h2>
-                <p class="text-lg md:text-xl text-gray-400 max-w-2xl mx-auto">
+                <p class="text-lg md:text-xl text-[#a1a1aa] max-w-2xl mx-auto">
                     Specialized endpoints for different use cases.
                 </p>
             </div>
             
-            <div class="grid md:grid-cols-3 gap-6">
-                <div class="glass-card p-8 hover:bg-white hover:bg-opacity-5 transition-all duration-300">
+            <div class="grid md:grid-cols-2 gap-8">
+                <div class="card">
                     <div class="flex items-center gap-3 mb-4">
-                        <span class="bg-green-500 bg-opacity-20 text-green-400 px-2.5 py-1 rounded-lg text-xs font-medium">GET</span>
+                        <span class="badge badge-green">GET</span>
                         <h3 class="font-semibold text-xl text-white">/all</h3>
                     </div>
-                    <p class="text-gray-400 mb-6 leading-relaxed">Fetches random images from curated topics or search results.</p>
-                    <div class="terminal-window">
-                        <div class="terminal-content text-xs py-2">
-                            <span class="text-gray-500">~ %</span> <span class="accent-blue">/all?ext=png</span>
-                        </div>
+                    <p class="text-[#d4d4d8] mb-6 leading-relaxed">Fetches random images from curated topics or search results.</p>
+                    <div class="bg-black/50 p-4 font-mono text-xs text-[#e4e4e7] border border-[#27272a] rounded-lg">
+                        <span class="text-[#71717a]">~ %</span> /all?ext=png
                     </div>
                 </div>
 
-                <div class="glass-card p-8 hover:bg-white hover:bg-opacity-5 transition-all duration-300">
+                <div class="card">
                     <div class="flex items-center gap-3 mb-4">
-                        <span class="bg-green-500 bg-opacity-20 text-green-400 px-2.5 py-1 rounded-lg text-xs font-medium">GET</span>
+                        <span class="badge badge-green">GET</span>
                         <h3 class="font-semibold text-xl text-white">/{source}</h3>
                     </div>
-                    <p class="text-gray-400 mb-6 leading-relaxed">Query a specific provider directly. Returns random images if no query provided.</p>
+                    <p class="text-[#d4d4d8] mb-6 leading-relaxed">Query a specific provider directly.</p>
                     <div class="flex flex-wrap gap-2 text-xs">
-                        <span class="glass-card px-3 py-1.5 accent-blue font-medium">/unsplash</span>
-                        <span class="glass-card px-3 py-1.5 accent-blue font-medium">/pixabay</span>
-                        <span class="glass-card px-3 py-1.5 accent-blue font-medium">/stocksnap</span>
+                        <span class="bg-blue-500/10 text-blue-400 border border-blue-500/20 px-3 py-1.5 font-mono rounded">/unsplash</span>
+                        <span class="bg-blue-500/10 text-blue-400 border border-blue-500/20 px-3 py-1.5 font-mono rounded">/pixabay</span>
+                        <span class="bg-blue-500/10 text-blue-400 border border-blue-500/20 px-3 py-1.5 font-mono rounded">/stocksnap</span>
                     </div>
                 </div>
             </div>
@@ -337,9 +384,9 @@
     </section>
 
     <!-- Footer -->
-    <footer class="py-8 border-t border-white border-opacity-10">
+    <footer class="py-12 border-t border-[#27272a]">
         <div class="max-w-7xl mx-auto px-6 text-center">
-            <p class="text-gray-500 text-sm">© 2026 StockIt API. Developed by Bhavesh.</p>
+            <p class="text-[#71717a] text-sm">© 2026 StockIt API. Developed by Bhavesh.</p>
         </div>
     </footer>
 
