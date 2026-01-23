@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StockIt API Documentation</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        
+        * {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        
+        html {
+            scroll-behavior: smooth;
+        }
+        
+        body {
+            background: #000000;
+        }
+        
+        section {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .terminal-window {
+            background: #1e1e1e;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 25px 70px rgba(0, 0, 0, 0.6);
+        }
+        
+        .terminal-header {
+            background: #323232;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid #000;
+        }
+        
+        .terminal-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .dot-close { background: #ff5f57; }
+        .dot-minimize { background: #febc2e; }
+        .dot-maximize { background: #28c840; }
+        
+        .terminal-content {
+            padding: 24px;
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.8;
+            color: #f5f5f7;
+            overflow-x: auto;
+        }
+        
+        .nav-link {
+            transition: all 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
+        }
+        
+        .nav-link:hover {
+            background: rgba(255, 255, 255, 0.08);
+        }
+        
+        .accent-blue {
+            color: #0a84ff;
+        }
+        
+        .bg-accent {
+            background: #0a84ff;
+        }
+        
+        .btn-primary {
+            background: #0a84ff;
+            transition: all 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
+            box-shadow: 0 4px 14px rgba(10, 132, 255, 0.39);
+        }
+        
+        .btn-primary:hover {
+            background: #0077ed;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(10, 132, 255, 0.5);
+        }
+        
+        .hero-title {
+            font-size: clamp(40px, 8vw, 80px);
+            font-weight: 600;
+            letter-spacing: -2px;
+            line-height: 1.05;
+        }
+        
+        .section-title {
+            font-size: clamp(32px, 5vw, 56px);
+            font-weight: 600;
+            letter-spacing: -1.5px;
+            line-height: 1.1;
+        }
+        
+        .fade-in {
+            animation: fadeIn 1s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .navbar-blur {
+            background: rgba(0, 0, 0, 0.72);
+            backdrop-filter: saturate(180%) blur(20px);
+            -webkit-backdrop-filter: saturate(180%) blur(20px);
+        }
+        
+        @media (max-width: 768px) {
+            section {
+                min-height: auto;
+                padding: 80px 0;
+            }
+        }
+    </style>
+</head>
+<body class="text-white">
+
+    <!-- Navbar -->
+    <nav class="navbar-blur fixed w-full z-50 top-0 border-b border-white border-opacity-10">
+        <div class="max-w-7xl mx-auto px-6 lg:px-8">
+            <div class="flex items-center justify-between h-14">
+                <div class="flex items-center gap-2">
+                    <div class="bg-accent text-white w-8 h-8 rounded-lg flex items-center justify-center font-semibold text-sm">Si</div>
+                    <span class="font-medium text-base text-white">StockIt API</span>
+                </div>
+                <div class="hidden md:flex items-center space-x-2">
+                    <a href="#hero" class="nav-link px-4 py-2 rounded-lg text-sm text-gray-300 hover:text-white">Overview</a>
+                    <a href="#search" class="nav-link px-4 py-2 rounded-lg text-sm text-gray-300 hover:text-white">Search</a>
+                    <a href="#endpoints" class="nav-link px-4 py-2 rounded-lg text-sm text-gray-300 hover:text-white">Endpoints</a>
+                    <a href="#convert" class="nav-link px-4 py-2 rounded-lg text-sm text-gray-300 hover:text-white">Convert</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="hero" class="relative">
+        <div class="max-w-6xl mx-auto px-6 text-center fade-in">
+            <h1 class="hero-title text-white mb-6">
+                Unified Stock<br>Image API
+            </h1>
+            <p class="text-xl md:text-2xl text-gray-400 max-w-3xl mx-auto mb-12 font-normal leading-relaxed">
+                One simple API to search and optimize images from Unsplash, Pexels, and Pixabay.
+            </p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
+                <a href="#search" class="btn-primary text-white font-medium py-3 px-8 rounded-full">
+                    Get Started
+                </a>
+                <a href="#endpoints" class="glass-card text-white font-medium py-3 px-8 rounded-full hover:bg-opacity-60 transition-all">
+                    View Documentation
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Introduction Section -->
+    <section id="introduction" class="relative bg-black">
+        <div class="max-w-5xl mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="section-title text-white mb-6">Introduction</h2>
+                <p class="text-lg md:text-xl text-gray-400 max-w-3xl mx-auto leading-relaxed">
+                    The StockIt API aggregates millions of free-to-use images from the web's best sources with built-in optimization.
+                </p>
+            </div>
+            
+            <div class="p-8 md:p-12 max-w-3xl mx-auto">
+                <h3 class="text-xl font-semibold text-white mb-6">Base URL</h3>
+                <div class="terminal-window">
+                    <div class="terminal-header">
+                        <div class="terminal-dot dot-close"></div>
+                        <div class="terminal-dot dot-minimize"></div>
+                        <div class="terminal-dot dot-maximize"></div>
+                    </div>
+                    <div class="terminal-content">
+                        <span class="text-gray-500">~ %</span> <span class="accent-blue">https://stockit.vercel.app</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Search Endpoint Section -->
+    <section id="search" class="relative bg-black">
+        <div class="max-w-6xl mx-auto px-6 w-full">
+            <div class="text-center mb-12">
+                <div class="flex items-center justify-center gap-3 mb-6">
+                    <span class="bg-green-500 bg-opacity-20 text-green-400 px-3 py-1.5 rounded-lg text-sm font-medium">GET</span>
+                    <h2 class="section-title text-white">/search</h2>
+                </div>
+                <p class="text-lg md:text-xl text-gray-400 max-w-2xl mx-auto">
+                    Search for images across all supported providers.
+                </p>
+            </div>
+
+            <div class="glass-card p-8 md:p-10 mb-10">
+                <h3 class="text-2xl font-semibold text-white mb-8">Query Parameters</h3>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full">
+                        <thead>
+                            <tr class="border-b border-white border-opacity-10">
+                                <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Parameter</th>
+                                <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                                <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-white divide-opacity-5">
+                            <tr>
+                                <td class="px-6 py-5 font-mono text-sm accent-blue font-medium">q</td>
+                                <td class="px-6 py-5 text-sm text-gray-400">string</td>
+                                <td class="px-6 py-5 text-sm text-gray-300">Search query <span class="text-red-400 text-xs font-semibold ml-2">Required</span></td>
+                            </tr>
+                            <tr>
+                                <td class="px-6 py-5 font-mono text-sm accent-blue font-medium">lim</td>
+                                <td class="px-6 py-5 text-sm text-gray-400">integer</td>
+                                <td class="px-6 py-5 text-sm text-gray-300">Results to return (default: 30, max: 500)</td>
+                            </tr>
+                            <tr>
+                                <td class="px-6 py-5 font-mono text-sm accent-blue font-medium">ext</td>
+                                <td class="px-6 py-5 text-sm text-gray-400">string</td>
+                                <td class="px-6 py-5 text-sm text-gray-300">Format: jpg, png, webp</td>
+                            </tr>
+                            <tr>
+                                <td class="px-6 py-5 font-mono text-sm accent-blue font-medium">quality</td>
+                                <td class="px-6 py-5 text-sm text-gray-400">integer</td>
+                                <td class="px-6 py-5 text-sm text-gray-300">Compression quality (1-100, default: 90)</td>
+                            </tr>
+                            <tr>
+                                <td class="px-6 py-5 font-mono text-sm accent-blue font-medium">orientation</td>
+                                <td class="px-6 py-5 text-sm text-gray-400">string</td>
+                                <td class="px-6 py-5 text-sm text-gray-300">Filter: p (portrait), l (landscape), s (square)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-6">
+                <div>
+                    <h3 class="text-xl font-semibold text-white mb-4">Example Request</h3>
+                    <div class="terminal-window">
+                        <div class="terminal-header">
+                            <div class="terminal-dot dot-close"></div>
+                            <div class="terminal-dot dot-minimize"></div>
+                            <div class="terminal-dot dot-maximize"></div>
+                            <span class="ml-3 text-xs text-gray-400">zsh</span>
+                        </div>
+                        <div class="terminal-content text-sm">
+                            <div><span class="text-gray-500">~ %</span> curl <span class="text-yellow-300">\</span></div>
+                            <div class="ml-4"><span class="text-green-400">"https://stockit.vercel.app/search?</span></div>
+                            <div class="ml-4"><span class="text-green-400">q=cyberpunk&lim=5&ext=webp&</span></div>
+                            <div class="ml-4"><span class="text-green-400">quality=50"</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <h3 class="text-xl font-semibold text-white mb-4">Example Response</h3>
+                    <div class="terminal-window">
+                        <div class="terminal-header">
+                            <div class="terminal-dot dot-close"></div>
+                            <div class="terminal-dot dot-minimize"></div>
+                            <div class="terminal-dot dot-maximize"></div>
+                            <span class="ml-3 text-xs text-gray-400">response.json</span>
+                        </div>
+                        <div class="terminal-content text-xs">
+<pre style="margin: 0; color: #f5f5f7;">{
+  <span class="text-purple-400">"count"</span>: <span class="text-blue-400">1</span>,
+  <span class="text-purple-400">"query"</span>: <span class="text-green-400">"cyberpunk"</span>,
+  <span class="text-purple-400">"results"</span>: [
+    {
+      <span class="text-purple-400">"id"</span>: <span class="text-green-400">"unsplash_abc"</span>,
+      <span class="text-purple-400">"source"</span>: <span class="text-green-400">"unsplash"</span>,
+      <span class="text-purple-400">"url"</span>: <span class="text-green-400">"..."</span>
+    }
+  ]
+}</pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Additional Endpoints Section -->
+    <section id="endpoints" class="relative bg-black">
+        <div class="max-w-6xl mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="section-title text-white mb-6">Additional Endpoints</h2>
+                <p class="text-lg md:text-xl text-gray-400 max-w-2xl mx-auto">
+                    Specialized endpoints for different use cases.
+                </p>
+            </div>
+            
+            <div class="grid md:grid-cols-3 gap-6">
+                <div class="glass-card p-8 hover:bg-white hover:bg-opacity-5 transition-all duration-300">
+                    <div class="flex items-center gap-3 mb-4">
+                        <span class="bg-green-500 bg-opacity-20 text-green-400 px-2.5 py-1 rounded-lg text-xs font-medium">GET</span>
+                        <h3 class="font-semibold text-xl text-white">/all</h3>
+                    </div>
+                    <p class="text-gray-400 mb-6 leading-relaxed">Fetches random images from curated topics or search results.</p>
+                    <div class="terminal-window">
+                        <div class="terminal-content text-xs py-2">
+                            <span class="text-gray-500">~ %</span> <span class="accent-blue">/all?ext=png</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-card p-8 hover:bg-white hover:bg-opacity-5 transition-all duration-300">
+                    <div class="flex items-center gap-3 mb-4">
+                        <span class="bg-green-500 bg-opacity-20 text-green-400 px-2.5 py-1 rounded-lg text-xs font-medium">GET</span>
+                        <h3 class="font-semibold text-xl text-white">/{source}</h3>
+                    </div>
+                    <p class="text-gray-400 mb-6 leading-relaxed">Query a specific provider directly for targeted results.</p>
+                    <div class="flex flex-wrap gap-2 text-xs">
+                        <span class="glass-card px-3 py-1.5 accent-blue font-medium">/unsplash</span>
+                        <span class="glass-card px-3 py-1.5 accent-blue font-medium">/pexels</span>
+                        <span class="glass-card px-3 py-1.5 accent-blue font-medium">/pixabay</span>
+                    </div>
+                </div>
+
+                <div class="glass-card p-8 hover:bg-white hover:bg-opacity-5 transition-all duration-300">
+                    <div class="flex items-center gap-3 mb-4">
+                        <span class="bg-green-500 bg-opacity-20 text-green-400 px-2.5 py-1 rounded-lg text-xs font-medium">GET</span>
+                        <h3 class="font-semibold text-xl text-white">/url</h3>
+                    </div>
+                    <p class="text-gray-400 mb-6 leading-relaxed">Scrape and extract images from any public website URL.</p>
+                    <div class="terminal-window">
+                        <div class="terminal-content text-xs py-2">
+                            <span class="text-gray-500">~ %</span> <span class="accent-blue">/url?q=site.com</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Convert Endpoint Section -->
+    <section id="convert" class="relative bg-black">
+        <div class="max-w-5xl mx-auto px-6">
+            <div class="text-center mb-16">
+                <div class="flex items-center justify-center gap-3 mb-6">
+                    <span class="bg-green-500 bg-opacity-20 text-green-400 px-3 py-1.5 rounded-lg text-sm font-medium">GET</span>
+                    <h2 class="section-title text-white">/convert</h2>
+                </div>
+                <p class="text-lg md:text-xl text-gray-400 max-w-2xl mx-auto">
+                    Real-time image optimizer and format converter.
+                </p>
+            </div>
+            
+            <div class="grid lg:grid-cols-2 gap-8 mb-12">
+                <div class="glass-card p-8">
+                    <h4 class="text-xl font-semibold text-white mb-6">Parameters</h4>
+                    <div class="space-y-6">
+                        <div class="flex gap-4">
+                            <code class="accent-blue font-mono text-sm font-medium min-w-[80px]">url</code>
+                            <span class="text-gray-400 leading-relaxed">The absolute URL of the image source</span>
+                        </div>
+                        <div class="flex gap-4">
+                            <code class="accent-blue font-mono text-sm font-medium min-w-[80px]">ext</code>
+                            <span class="text-gray-400 leading-relaxed">Target format (jpg, png, webp)</span>
+                        </div>
+                        <div class="flex gap-4">
+                            <code class="accent-blue font-mono text-sm font-medium min-w-[80px]">quality</code>
+                            <span class="text-gray-400 leading-relaxed">Compression level from 1-100</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="glass-card p-8 border-blue-500 border-opacity-20">
+                    <h4 class="text-xl font-semibold text-white mb-6">Auto-Configuration</h4>
+                    <p class="text-gray-400 leading-relaxed mb-4">
+                        You usually don't need to call this endpoint manually.
+                    </p>
+                    <p class="text-gray-400 leading-relaxed">
+                        When you pass <code class="accent-blue font-mono text-sm">ext=webp</code> to the search endpoint, all returned URLs automatically point here with optimized parameters.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="py-8 border-t border-white border-opacity-10">
+        <div class="max-w-7xl mx-auto px-6 text-center">
+            <p class="text-gray-500 text-sm">© 2026 StockIt API. Developed by Bhavesh.</p>
+        </div>
+    </footer>
+
+</body>
+</html>
