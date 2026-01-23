@@ -232,6 +232,9 @@ def scrape_unsplash_page(query, page, filters=None, ext=None, quality=DEFAULT_QU
         
         results = []
         for item in r.json().get('results', []):
+            if item.get('plus') or item.get('premium') or item.get('sponsorship'):
+                continue
+
             try:
                 user = item.get('user', {})
                 urls = item.get('urls', {})
