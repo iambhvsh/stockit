@@ -45,7 +45,7 @@ THREAD_POOL_TIMEOUT = 8.0
 THREAD_CHECK_TIMEOUT = 8.5
 THREAD_RESULT_TIMEOUT = 1.0
 REQUEST_TIMEOUT = 4
-MAX_RETRIES = 1
+MAX_RETRIES = 2
 SCRAPER_DELAY = 0.5
 MAX_WORKERS = 6
 
@@ -62,7 +62,14 @@ MIN_QUALITY = 1
 ORIENTATION_MAP = {'p': 'portrait', 'l': 'landscape', 's': 'square'}
 BROWSER_CONFIG = {'browser': 'chrome', 'platform': 'windows', 'desktop': True}
 SUPPORTED_IMAGE_FORMATS = ['png', 'webp', 'jpg', 'jpeg']
-USER_AGENT = 'Mozilla/5.0'
+USER_AGENTS = [
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:123.0) Gecko/20100101 Firefox/123.0',
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 14.3; rv:123.0) Gecko/20100101 Firefox/123.0',
+]
 
 # Source Specifics
 PIXABAY_REPLACE_PAIRS = [('_340', '_1280'), ('_640', '_1280')]
@@ -148,9 +155,15 @@ def fetch_with_scraper(scraper, url, headers=None, retries=MAX_RETRIES):
             r = scraper.get(url, headers=headers, timeout=REQUEST_TIMEOUT)
             if r.status_code == 200:
                 return r
-            if r.status_code in [403, 429]:
+            if r.status_code == 429:
+                if i < retries - 1:
+                    time.sleep(0.5 * (2 ** i))
+                continue
+            if r.status_code == 403:
                 return None
         except Exception:
+            if i < retries - 1:
+                continue
             return None
     return None
 
@@ -225,8 +238,18 @@ def scrape_unsplash_page(query, page, filters=None, ext=None, quality=DEFAULT_QU
         }
         query_string = urllib.parse.urlencode({k: v for k, v in params.items() if v})
         api_url = f"https://unsplash.com/napi/search/photos?{query_string}"
+
+        headers = {
+            'Accept': 'application/json',
+            'Accept-Language': 'en-US,en;q=0.9',
+            'Referer': f'https://unsplash.com/s/photos/{urllib.parse.quote(query)}',
+            'User-Agent': random.choice(USER_AGENTS),
+            'Sec-Fetch-Dest': 'empty',
+            'Sec-Fetch-Mode': 'cors',
+            'Sec-Fetch-Site': 'same-origin',
+        }
         
-        r = fetch_with_scraper(scraper, api_url)
+        r = fetch_with_scraper(scraper, api_url, headers=headers)
         if not r:
             return []
         
@@ -274,7 +297,17 @@ def scrape_pixabay_page(query, page, filters=None, ext=None, quality=DEFAULT_QUA
                 params['orientation'] = 'vertical'
 
         url = f"https://pixabay.com/images/search/{query}/?{urllib.parse.urlencode(params)}"
-        r = fetch_with_scraper(scraper, url)
+        headers = {
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+            'Accept-Language': 'en-US,en;q=0.9',
+            'Referer': 'https://pixabay.com/',
+            'User-Agent': random.choice(USER_AGENTS),
+            'Sec-Fetch-Dest': 'document',
+            'Sec-Fetch-Mode': 'navigate',
+            'Sec-Fetch-Site': 'same-origin',
+            'Upgrade-Insecure-Requests': '1',
+        }
+        r = fetch_with_scraper(scraper, url, headers=headers)
         if not r:
             return []
         
@@ -312,7 +345,16 @@ def scrape_stocksnap_page(query, page, filters=None, ext=None, quality=DEFAULT_Q
     scraper = get_scraper()
     try:
         url = f"https://stocksnap.io/search/{query}"
-        headers = {'User-Agent': USER_AGENT}
+        headers = {
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+            'Accept-Language': 'en-US,en;q=0.9',
+            'Referer': 'https://stocksnap.io/',
+            'User-Agent': random.choice(USER_AGENTS),
+            'Sec-Fetch-Dest': 'document',
+            'Sec-Fetch-Mode': 'navigate',
+            'Sec-Fetch-Site': 'same-origin',
+            'Upgrade-Insecure-Requests': '1',
+        }
         r = fetch_with_scraper(scraper, url, headers=headers)
         
         if not r:
