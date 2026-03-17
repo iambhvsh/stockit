@@ -24,6 +24,8 @@ import time
 import os
 import urllib.parse
 import random
+import json
+import hashlib
 
 DEFAULT_SEARCH_QUERIES = [
   'nature', 'forest', 'mountains', 'waterfall', 'ocean', 'desert', 'sunset', 'sunrise', 'wildlife', 'macro nature',
@@ -73,6 +75,15 @@ USER_AGENTS = [
 
 # Source Specifics
 PIXABAY_REPLACE_PAIRS = [('_340', '_1280'), ('_640', '_1280')]
+
+# Openverse
+OPENVERSE_API_BASE = "https://api.openverse.org/v1"
+OPENVERSE_ORIENTATION_MAP = {
+    'portrait': 'tall',
+    'landscape': 'wide',
+    'square': 'square',
+    'squarish': 'square',
+}
 
 # Skip Keywords
 SKIP_KEYWORDS = [
@@ -223,56 +234,118 @@ def scrape_unsplash_page(query, page, filters=None, ext=None, quality=DEFAULT_QU
     scraper = get_scraper()
     try:
         filters = filters or {}
-        order_by = 'latest' if filters.get('order') == 'latest' else 'relevant'
         orientation = filters.get('orientation', '')
         if orientation == 'square':
             orientation = 'squarish'
+        order_by = 'latest' if filters.get('order') == 'latest' else 'relevant'
 
-        params = {
-            "query": query,
-            "per_page": PER_PAGE_DEFAULT,
-            "page": page,
-            "orientation": orientation,
-            "order_by": order_by,
-            "_t": int(time.time() * 1000)
-        }
-        query_string = urllib.parse.urlencode({k: v for k, v in params.items() if v})
-        api_url = f"https://unsplash.com/napi/search/photos?{query_string}"
+        page_params = {'order_by': order_by}
+        if page > 1:
+            page_params['page'] = page
+        if orientation:
+            page_params['orientation'] = orientation
+
+        query_slug = urllib.parse.quote(query.replace(' ', '-'))
+        url = f"https://unsplash.com/s/photos/{query_slug}?{urllib.parse.urlencode(page_params)}"
 
         headers = {
-            'Accept': 'application/json',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
             'Accept-Language': 'en-US,en;q=0.9',
-            'Referer': f'https://unsplash.com/s/photos/{urllib.parse.quote(query)}',
+            'Accept-Encoding': 'gzip, deflate, br',
+            'Connection': 'keep-alive',
             'User-Agent': random.choice(USER_AGENTS),
-            'Sec-Fetch-Dest': 'empty',
-            'Sec-Fetch-Mode': 'cors',
-            'Sec-Fetch-Site': 'same-origin',
+            'Sec-Fetch-Dest': 'document',
+            'Sec-Fetch-Mode': 'navigate',
+            'Sec-Fetch-Site': 'none',
+            'Upgrade-Insecure-Requests': '1',
         }
-        
-        r = fetch_with_scraper(scraper, api_url, headers=headers)
+
+        r = fetch_with_scraper(scraper, url, headers=headers)
         if not r:
             return []
-        
-        results = []
-        for item in r.json().get('results', []):
-            if item.get('plus') or item.get('premium') or item.get('sponsorship'):
-                continue
 
+        soup = BeautifulSoup(r.text, 'html.parser')
+
+        # Try to extract structured photo data from __NEXT_DATA__
+        next_data_tag = soup.find('script', id='__NEXT_DATA__')
+        if next_data_tag and next_data_tag.string:
             try:
-                user = item.get('user', {})
-                urls = item.get('urls', {})
+                next_data = json.loads(next_data_tag.string)
+                photos = None
+                search_paths = [
+                    ['props', 'pageProps', 'serverState', 'initialSearchPhotoState', 'results'],
+                    ['props', 'pageProps', 'initialSearchState', 'photos', 'results'],
+                    ['props', 'pageProps', 'initialSearchPhotoState', 'results'],
+                    ['props', 'pageProps', 'photos', 'results'],
+                ]
+                for path in search_paths:
+                    node = next_data
+                    try:
+                        for key in path:
+                            node = node[key]
+                        if isinstance(node, list) and node:
+                            photos = node
+                            break
+                    except (KeyError, TypeError):
+                        continue
+
+                if photos:
+                    results = []
+                    for item in photos:
+                        if item.get('plus') or item.get('premium') or item.get('sponsorship'):
+                            continue
+                        try:
+                            user = item.get('user', {})
+                            urls = item.get('urls', {})
+                            results.append(standardize_result(
+                                source="unsplash",
+                                source_id=item['id'],
+                                url=urls.get('regular') or urls.get('full'),
+                                thumb=urls.get('small') or urls.get('thumb'),
+                                alt=item.get('alt_description'),
+                                width=item.get('width', 0),
+                                height=item.get('height', 0),
+                                start_color=item.get('color'),
+                                photographer_name=user.get('name'),
+                                photographer_url=user.get('links', {}).get('html'),
+                                tags=[t.get('title') for t in item.get('tags', [])][:3],
+                                ext=ext,
+                                quality=quality
+                            ))
+                        except Exception:
+                            continue
+                    if results:
+                        return results
+            except (json.JSONDecodeError, Exception):
+                pass
+
+        # Fallback: extract image URLs directly from <img> tags
+        results = []
+        for img in soup.find_all('img'):
+            try:
+                src = img.get('src') or ''
+                if urllib.parse.urlparse(src).netloc != 'images.unsplash.com':
+                    srcset = img.get('srcset', '')
+                    for part in srcset.split(','):
+                        candidate = part.strip().split(' ')[0]
+                        if urllib.parse.urlparse(candidate).netloc == 'images.unsplash.com':
+                            src = candidate
+                            break
+
+                if not src or urllib.parse.urlparse(src).netloc != 'images.unsplash.com':
+                    continue
+                if any(kw in src for kw in SKIP_KEYWORDS):
+                    continue
+
+                alt = img.get('alt', '')
+                photo_id = src.split('photo-')[1].split('?')[0] if 'photo-' in src else hashlib.md5(src.encode()).hexdigest()[:12]
                 results.append(standardize_result(
                     source="unsplash",
-                    source_id=item['id'],
-                    url=urls.get('regular', urls.get('full')),
-                    thumb=urls.get('small', urls.get('thumb')),
-                    alt=item.get('alt_description'),
-                    width=item.get('width'),
-                    height=item.get('height'),
-                    start_color=item.get('color'),
-                    photographer_name=user.get('name'),
-                    photographer_url=user.get('links', {}).get('html'),
-                    tags=[t.get('title') for t in item.get('tags', [])][:3],
+                    source_id=photo_id,
+                    url=src,
+                    thumb=src,
+                    alt=alt or 'Unsplash Image',
+                    photographer_name=None,
                     ext=ext,
                     quality=quality
                 ))
@@ -394,6 +467,57 @@ def scrape_stocksnap_page(query, page, filters=None, ext=None, quality=DEFAULT_Q
         return []
 
 
+def scrape_openverse_page(query, page, filters=None, ext=None, quality=DEFAULT_QUALITY):
+    scraper = get_scraper()
+    try:
+        filters = filters or {}
+        params = {
+            "q": query,
+            "page_size": PER_PAGE_DEFAULT,
+            "page": page,
+            "filter_dead": "true",
+        }
+        orientation = filters.get('orientation', '')
+        ov_orientation = OPENVERSE_ORIENTATION_MAP.get(orientation)
+        if ov_orientation:
+            params['aspect_ratio'] = ov_orientation
+
+        url = f"{OPENVERSE_API_BASE}/images/?{urllib.parse.urlencode(params)}"
+        headers = {
+            'Accept': 'application/json',
+            'Accept-Language': 'en-US,en;q=0.9',
+            'User-Agent': random.choice(USER_AGENTS),
+        }
+
+        r = fetch_with_scraper(scraper, url, headers=headers)
+        if not r:
+            return []
+
+        results = []
+        for item in r.json().get('results', []):
+            try:
+                results.append(standardize_result(
+                    source="openverse",
+                    source_id=item['id'],
+                    url=item.get('url', ''),
+                    thumb=item.get('thumbnail') or item.get('url', ''),
+                    alt=item.get('title') or 'Openverse Image',
+                    width=item.get('width', 0),
+                    height=item.get('height', 0),
+                    photographer_name=item.get('creator') or 'Unknown',
+                    photographer_url=item.get('creator_url'),
+                    page_url=item.get('foreign_landing_url'),
+                    tags=[tag.get('name', '') for tag in (item.get('tags') or [])][:3],
+                    ext=ext,
+                    quality=quality
+                ))
+            except Exception:
+                continue
+        return results
+    except Exception:
+        return []
+
+
 # ==========================================
 # ORCHESTRATION
 # ==========================================
@@ -415,6 +539,9 @@ def get_images_threaded(query, limit, filters=None, ext=None, quality=DEFAULT_QU
                                               filters, ext, quality))
             if 'stocksnap' in sources:
                 futures.append(executor.submit(scrape_stocksnap_page, query, page, 
+                                              filters, ext, quality))
+            if 'openverse' in sources:
+                futures.append(executor.submit(scrape_openverse_page, query, page,
                                               filters, ext, quality))
         
         for future in as_completed(futures, timeout=THREAD_POOL_TIMEOUT):
@@ -531,8 +658,8 @@ def aggregate_random_images(sources):
 def all_images():
     query = request.args.get('q')
     if query:
-        return search_handler(query, sources=['unsplash', 'pixabay', 'stocksnap'])
-    return aggregate_random_images(sources=['unsplash', 'pixabay', 'stocksnap'])
+        return search_handler(query, sources=['unsplash', 'pixabay', 'stocksnap', 'openverse'])
+    return aggregate_random_images(sources=['unsplash', 'pixabay', 'stocksnap', 'openverse'])
 
 
 @app.route('/unsplash')
@@ -557,6 +684,14 @@ def stocksnap_images():
     if query:
         return search_handler(query, sources=['stocksnap'])
     return aggregate_random_images(sources=['stocksnap'])
+
+
+@app.route('/openverse')
+def openverse_images():
+    query = request.args.get('q')
+    if query:
+        return search_handler(query, sources=['openverse'])
+    return aggregate_random_images(sources=['openverse'])
 
 
 def search_handler(query=None, sources=['unsplash', 'pixabay', 'stocksnap']):
